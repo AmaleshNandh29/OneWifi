@@ -8632,6 +8632,9 @@ Security_SetParamStringValue
         if (radioOperation->band == WIFI_FREQUENCY_6_BAND &&
             TmpMode != wifi_security_mode_wpa3_personal &&
             TmpMode != wifi_security_mode_wpa3_enterprise &&
+#if defined(CONFIG_IEEE80211BE)
+            TmpMode != wifi_security_mode_wpa3_compatibility &&
+#endif /* CONFIG_IEEE80211BE */
             TmpMode != wifi_security_mode_enhanced_open)
         {
             wifi_util_error_print(WIFI_DMCLI, "%s:%d invalid mode %d for 6GHz\n", __func__,
@@ -8702,6 +8705,12 @@ Security_SetParamStringValue
             case wifi_security_mode_wpa3_compatibility:
                 l_security_cfg->u.key.type = wifi_security_key_type_psk_sae;
                 l_security_cfg->mfp = wifi_mfp_cfg_disabled;
+#if defined(CONFIG_IEEE80211BE)
+                if(isVapPrivate6g(pcfg->vap_index)) {
+                    l_security_cfg->u.key.type = wifi_security_key_type_sae;
+                    l_security_cfg->mfp = wifi_mfp_cfg_required;
+                }
+#endif /* CONFIG_IEEE80211BE */
                 break;
             default:
                 break;

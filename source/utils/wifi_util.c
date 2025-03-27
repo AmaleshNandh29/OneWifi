@@ -1352,6 +1352,17 @@ BOOL is_vap_private(wifi_platform_property_t *wifi_prop, UINT ap_index)
     return (strncmp((char *)&vap_prop->vap_name[0], "private_ssid", strlen("private_ssid"))) ? FALSE : TRUE;
 }
 
+BOOL is_vap_private_6g(wifi_platform_property_t *wifi_prop, UINT ap_index)
+{
+    wifi_interface_name_idex_map_t* vap_prop;
+
+    if ((vap_prop = GET_VAP_INDEX_PROPERTY(wifi_prop, ap_index)) == NULL) {
+        return FALSE;
+    }
+
+    return (strncmp((char *)&vap_prop->vap_name[0], "private_ssid_6g", strlen("private_ssid_6g"))) ? FALSE : TRUE;
+}
+
 BOOL is_vap_xhs(wifi_platform_property_t *wifi_prop, UINT ap_index)
 {
     wifi_interface_name_idex_map_t* vap_prop;

@@ -1104,7 +1104,14 @@ webconfig_error_t encode_security_object(const wifi_vap_security_t *security_inf
 #endif // CONFIG_IEEE80211BE
 
     if(security_info->mode == wifi_security_mode_wpa3_compatibility &&
+#if defined(CONFIG_IEEE80211BE)
+        (band == WIFI_FREQUENCY_6_BAND &&
+        security_info->mfp != wifi_mfp_cfg_required) ||
+        (band != WIFI_FREQUENCY_6_BAND &&
+        security_info->mfp != wifi_mfp_cfg_disabled)) {
+#else
         security_info->mfp != wifi_mfp_cfg_disabled) {
+#endif /* CONFIG_IEEE80211BE */
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d Invalid MFP Config %d for %d mode \n",
             __func__, __LINE__, security_info->mfp, security_info->mode);
         return webconfig_error_encode;

@@ -351,6 +351,12 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
             vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_compatibility;
             vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_psk_sae;
             vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
+#if defined(CONFIG_IEEE80211BE)
+            if(isVapPrivate6g(vap_info->vap_index)) {
+                vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_sae;
+                vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_required;
+            }
+#endif /* CONFIG_IEEE80211BE */
         } else {
             if (execRetVal) {
                 strncpy(execRetVal->ErrorMsg,"Invalid Security Mode",sizeof(execRetVal->ErrorMsg)-1);

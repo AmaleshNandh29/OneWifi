@@ -2810,8 +2810,15 @@ bool security_set_param_string_value(void *obj_ins_context, char *param_name, sc
                 p_dm_sec_cfg->mfp = wifi_mfp_cfg_required;
                 break;
             case wifi_security_mode_wpa3_compatibility:
-                l_security_cfg->u.key.type = wifi_security_key_type_psk_sae;
+                p_dm_sec_cfg->u.key.type = wifi_security_key_type_psk_sae;
                 p_dm_sec_cfg->mfp = wifi_mfp_cfg_disabled;
+#if defined(CONFIG_IEEE80211BE)
+                if(isVapPrivate6g(pcfg->vap_index)) {
+                    p_dm_sec_cfg->u.key.type = wifi_security_key_type_sae;
+                    p_dm_sec_cfg->mfp = wifi_mfp_cfg_required;
+                }
+#endif /* CONFIG_IEEE80211BE */
+
                 break;
             default:
                 break;
