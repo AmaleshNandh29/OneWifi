@@ -3108,10 +3108,12 @@ void process_rsn_override_rfc(bool type)
             continue;
         }
 
+#if !defined(CONFIG_IEEE80211BE)
         if (radio_params->band == WIFI_FREQUENCY_6_BAND) {
             wifi_util_info_print(WIFI_CTRL,"%s: %d 6GHz radio supports only WPA3 personal mode. WPA3-RFC: %d\n",__FUNCTION__,__LINE__,type);
             continue;
         }
+#endif
 
         if(type) {
             if(vapInfo->u.bss_info.security.mode == wifi_security_mode_wpa3_compatibility) {
