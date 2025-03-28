@@ -265,7 +265,7 @@ int freq_band_conversion(wifi_freq_bands_t *band_enum, char *freq_band, int freq
     unsigned int conv_type);
 BOOL wifi_util_is_vap_index_valid(wifi_platform_property_t *wifi_prop, int vap_index);
 BOOL is_vap_private(wifi_platform_property_t *wifi_prop, unsigned int ap_index);
-BOOL is_vap_private_6g(wifi_platform_property_t *wifi_prop, UINT ap_index);
+BOOL is_vap_private_6g(wifi_platform_property_t *wifi_prop, unsigned int ap_index);
 BOOL is_vap_xhs(wifi_platform_property_t *wifi_prop, unsigned int ap_index);
 BOOL is_vap_hotspot(wifi_platform_property_t *wifi_prop, unsigned int ap_index);
 BOOL is_vap_hotspot_open(wifi_platform_property_t *wifi_prop, unsigned int ap_index);
