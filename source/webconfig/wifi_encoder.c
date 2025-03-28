@@ -1107,7 +1107,7 @@ webconfig_error_t encode_security_object(const wifi_vap_security_t *security_inf
 #if defined(CONFIG_IEEE80211BE)
         (is_6g == true &&
         security_info->mfp != wifi_mfp_cfg_required) ||
-        (band != WIFI_FREQUENCY_6_BAND &&
+        (is_6g == false &&
         security_info->mfp != wifi_mfp_cfg_disabled)) {
 #else
         security_info->mfp != wifi_mfp_cfg_disabled) {
