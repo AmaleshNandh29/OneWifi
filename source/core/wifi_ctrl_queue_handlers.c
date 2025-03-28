@@ -3125,8 +3125,8 @@ void process_rsn_override_rfc(bool type)
 
 #if defined(CONFIG_IEEE80211BE)
             if (radio_params->band == WIFI_FREQUENCY_6_BAND) {
-                vap_info->u.bss_info.security.u.key.type = wifi_security_key_type_sae;
-                vap_info->u.bss_info.security.mfp = wifi_mfp_cfg_required;
+                vapInfo->u.bss_info.security.u.key.type = wifi_security_key_type_sae;
+                vapInfo->u.bss_info.security.mfp = wifi_mfp_cfg_required;
             }
 #endif /* CONFIG_IEEE80211BE */
         } else {
@@ -3147,7 +3147,7 @@ void process_rsn_override_rfc(bool type)
             }
 #if defined(CONFIG_IEEE80211BE)
             if (radio_params->band == WIFI_FREQUENCY_6_BAND) {
-                vap_info->u.bss_info.security.mode = wifi_security_mode_wpa3_personal;
+                vapInfo->u.bss_info.security.mode = wifi_security_mode_wpa3_personal;
             }
 #endif
         }
