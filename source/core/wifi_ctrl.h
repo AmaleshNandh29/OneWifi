@@ -308,6 +308,7 @@ UINT getRadioIndexFromAp(UINT apIndex);
 UINT getPrivateApFromRadioIndex(UINT radioIndex);
 CHAR* getVAPName(UINT apIndex);
 BOOL isVapPrivate(UINT apIndex);
+BOOL isVapPrivate6g(UINT apIndex);
 BOOL isVapXhs(UINT apIndex);
 BOOL isVapHotspot(UINT apIndex);
 BOOL isVapHotspotOpen(UINT apIndex);
