@@ -1294,10 +1294,10 @@ webconfig_error_t decode_security_object(const cJSON *security, wifi_vap_securit
 
     if(security_info->mode == wifi_security_mode_wpa3_compatibility &&
 #if defined(CONFIG_IEEE80211BE)
-            (band == WIFI_FREQUENCY_6_BAND &&
+            ((band == WIFI_FREQUENCY_6_BAND &&
             security_info->mfp != wifi_mfp_cfg_required) ||
             (band != WIFI_FREQUENCY_6_BAND &&
-            security_info->mfp != wifi_mfp_cfg_disabled)) {
+            security_info->mfp != wifi_mfp_cfg_disabled))) {
 #else
             security_info->mfp != wifi_mfp_cfg_disabled) {
 #endif /* CONFIG_IEEE80211BE */
