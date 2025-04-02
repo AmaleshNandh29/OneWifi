@@ -1004,6 +1004,7 @@ webconfig_error_t encode_security_object(const wifi_vap_security_t *security_inf
 {
     cJSON *obj;
 
+    wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d RSN_IE ,mode:%d is_6g:%d \n", __FUNCTION__, __LINE__, security_info->mode, is_6g);
     if (is_6g &&
         security_info->mode != wifi_security_mode_wpa3_personal &&
         security_info->mode != wifi_security_mode_wpa3_compatibility &&
