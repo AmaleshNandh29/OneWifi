@@ -2808,11 +2808,6 @@ BOOL isVapPrivate(UINT apIndex)
     return is_vap_private(&(get_wifimgr_obj())->hal_cap.wifi_prop, apIndex);
 }
 
-BOOL isVapPrivate6g(UINT apIndex)
-{
-    return is_vap_private_6g(&(get_wifimgr_obj())->hal_cap.wifi_prop, apIndex);
-}
-
 BOOL isVapXhs(UINT apIndex)
 {
     return is_vap_xhs(&(get_wifimgr_obj())->hal_cap.wifi_prop, apIndex);

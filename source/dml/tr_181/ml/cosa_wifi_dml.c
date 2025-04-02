@@ -8706,7 +8706,7 @@ Security_SetParamStringValue
                 l_security_cfg->u.key.type = wifi_security_key_type_psk_sae;
                 l_security_cfg->mfp = wifi_mfp_cfg_disabled;
 #if defined(CONFIG_IEEE80211BE)
-                if(isVapPrivate6g(pcfg->vap_index)) {
+                if( strstr(vapInfo->vap_name, "6g") ) {
                     l_security_cfg->u.key.type = wifi_security_key_type_sae;
                     l_security_cfg->mfp = wifi_mfp_cfg_required;
                 }

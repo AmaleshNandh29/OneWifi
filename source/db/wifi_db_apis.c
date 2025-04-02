@@ -4427,7 +4427,7 @@ static void wifidb_vap_config_upgrade(wifi_vap_info_map_t *config, rdk_wifi_vap_
                 config->vap_array[i].u.bss_info.security.mode = wifi_security_mode_wpa2_personal;
                 config->vap_array[i].u.bss_info.security.mfp = wifi_mfp_cfg_disabled;
 #if defined(CONFIG_IEEE80211BE)
-                if( isVapPrivate6g(config->vap_array[i].vap_index) ) {
+                if( ( config->vap_array[i].radio_index == 2) ) {
                     config->vap_array[i].u.bss_info.security.mode = wifi_security_mode_wpa3_personal;
                     config->vap_array[i].u.bss_info.security.mfp = wifi_mfp_cfg_required;
                 }
@@ -5752,6 +5752,7 @@ int wifidb_get_wifi_security_config_old_mode(char *vap_name, int vap_index)
     wifi_db_t *g_wifidb;
     g_wifidb = (wifi_db_t*) get_wifidb_obj();
     int count, sec_mode_old = 0;
+    bool is_6g = strstr(vap_name, "6g")?true:false;
 
     where = onewifi_ovsdb_tran_cond(OCLM_STR, "vap_name", OFUNC_EQ, vap_name);
     pcfg = onewifi_ovsdb_table_select_where(g_wifidb->wifidb_sock_path, &table_Wifi_Security_Config, where, &count);
@@ -5759,7 +5760,7 @@ int wifidb_get_wifi_security_config_old_mode(char *vap_name, int vap_index)
     if (pcfg == NULL) {
         wifidb_print("%s:%d Table table_Wifi_Security_Config table not found, entry count=%d \n",__func__, __LINE__, count);
 #if defined(CONFIG_IEEE80211BE)
-        if(isVapPrivate6g(vap_index))
+        if(is_6g)
             return wifi_security_mode_wpa3_personal;
 #endif /* CONFIG_IEEE80211BE */
         return wifi_security_mode_wpa2_personal;
@@ -5767,7 +5768,7 @@ int wifidb_get_wifi_security_config_old_mode(char *vap_name, int vap_index)
 
     sec_mode_old = (isVapPrivate(vap_index) && !pcfg->security_mode) ? wifi_security_mode_wpa2_personal : pcfg->security_mode;
 #if defined(CONFIG_IEEE80211BE)
-    sec_mode_old = (isVapPrivate6g(vap_index) && !pcfg->security_mode) ? wifi_security_mode_wpa3_personal : pcfg->security_mode;
+    sec_mode_old = (is_6g && !pcfg->security_mode) ? wifi_security_mode_wpa3_personal : pcfg->security_mode;
 #endif /* CONFIG_IEEE80211BE */
 
     return sec_mode_old;
