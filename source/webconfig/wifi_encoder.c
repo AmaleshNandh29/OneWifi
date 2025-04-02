@@ -1105,10 +1105,10 @@ webconfig_error_t encode_security_object(const wifi_vap_security_t *security_inf
 
     if(security_info->mode == wifi_security_mode_wpa3_compatibility &&
 #if defined(CONFIG_IEEE80211BE)
-        (is_6g == true &&
+        ((is_6g == true &&
         security_info->mfp != wifi_mfp_cfg_required) ||
         (is_6g == false &&
-        security_info->mfp != wifi_mfp_cfg_disabled)) {
+        security_info->mfp != wifi_mfp_cfg_disabled))) {
 #else
         security_info->mfp != wifi_mfp_cfg_disabled) {
 #endif /* CONFIG_IEEE80211BE */
