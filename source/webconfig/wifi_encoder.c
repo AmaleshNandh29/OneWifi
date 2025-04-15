@@ -2695,11 +2695,11 @@ webconfig_error_t encode_em_config_object(const em_config_t *em_config, cJSON *e
             em_config->radio_metrics_policies.radio_metrics_policy[i].sta_rcpi_hysteresis);
         cJSON_AddNumberToObject(param_obj, "AP Utilization Threshold",
             em_config->radio_metrics_policies.radio_metrics_policy[i].ap_util_threshold);
-        cJSON_AddNumberToObject(param_obj, "STA Traffic Stats",
+        cJSON_AddBoolToObject(param_obj, "STA Traffic Stats",
             em_config->radio_metrics_policies.radio_metrics_policy[i].traffic_stats);
-        cJSON_AddNumberToObject(param_obj, "STA Link Metrics",
+        cJSON_AddBoolToObject(param_obj, "STA Link Metrics",
             em_config->radio_metrics_policies.radio_metrics_policy[i].link_metrics);
-        cJSON_AddNumberToObject(param_obj, "STA Status",
+        cJSON_AddBoolToObject(param_obj, "STA Status",
             em_config->radio_metrics_policies.radio_metrics_policy[i].sta_status);
     }
 
@@ -2734,6 +2734,7 @@ webconfig_error_t encode_em_sta_link_metrics_object(const em_assoc_sta_link_metr
 
             uint8_mac_to_string_mac(sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.sta_mac, mac_str);
             cJSON_AddStringToObject(assoc_sta_link_metrics_obj, "STA MAC", mac_str);
+            cJSON_AddStringToObject(assoc_sta_link_metrics_obj, "Client Type", sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.client_type);
             cJSON_AddNumberToObject(assoc_sta_link_metrics_obj, "Number of BSSIDs", 
                 sta_link_metrics->per_sta_metrics[i].assoc_sta_link_metrics.num_bssid);
             
