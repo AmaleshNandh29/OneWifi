@@ -1002,10 +1002,11 @@ webconfig_error_t encode_security_object(const wifi_vap_security_t *security_inf
 {
     cJSON *obj;
 
-    wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d RSN_IE ,mode:%d is_6g:%d \n", __FUNCTION__, __LINE__, security_info->mode, is_6g);
     if (is_6g &&
         security_info->mode != wifi_security_mode_wpa3_personal &&
+#if defined(CONFIG_IEEE80211BE)
         security_info->mode != wifi_security_mode_wpa3_compatibility &&
+#endif /* CONFIG_IEEE80211BE */
         security_info->mode != wifi_security_mode_wpa3_enterprise &&
         security_info->mode != wifi_security_mode_enhanced_open) {
         wifi_util_error_print(WIFI_WEBCONFIG, "%s:%d invalid security mode %d for 6G interface\n",
