@@ -385,7 +385,7 @@ static int decode_security_blob(wifi_vap_info_t *vap_info, cJSON *security,pErr 
     }
 
     bool is_6g = strstr(vap_info->vap_name, "6g")?true:false;
-    if (validate_private_home_security_param(vap_info, value,encryption_method,execRetVal, is_6g) != RETURN_OK) {
+    if (validate_private_home_security_param(value,encryption_method,execRetVal, is_6g) != RETURN_OK) {
         wifi_util_error_print(WIFI_CTRL, "%s: Invalid Encryption Security Combination \n", __func__);
         return RETURN_ERR;
     }
