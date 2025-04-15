@@ -5763,7 +5763,9 @@ int wifidb_get_wifi_security_config_old_mode(char *vap_name, int vap_index)
     wifi_db_t *g_wifidb;
     g_wifidb = (wifi_db_t*) get_wifidb_obj();
     int count, sec_mode_old = 0;
+#if defined(CONFIG_IEEE80211BE)
     bool is_6g = strstr(vap_name, "6g")?true:false;
+#endif /* CONFIG_IEEE80211BE */
 
     where = onewifi_ovsdb_tran_cond(OCLM_STR, "vap_name", OFUNC_EQ, vap_name);
     pcfg = onewifi_ovsdb_table_select_where(g_wifidb->wifidb_sock_path, &table_Wifi_Security_Config, where, &count);
