@@ -569,8 +569,10 @@ int retrigger_neighbor_scan(void *arg)
         ret = execute_radio_channel_api(c_elem, mon_data, c_elem->collector_task_interval_ms);
         if (ret != RETURN_OK) {
             mon_data->scan_trigger_retries[args->radio_index]++;
-            scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan, c_elem,
-                NEIGHBOR_SCAN_RETRY_INTERVAL, 1, FALSE);
+            usleep(100* 1000);
+            //scheduler_add_timer_task(mon_data->sched, FALSE, &id, retrigger_neighbor_scan, c_elem,
+                //NEIGHBOR_SCAN_RETRY_INTERVAL, 1, FALSE);
+            retrigger_neighbor_scan(c_elem);
             c_elem->u.radio_channel_neighbor_data.scan_trigger_task_id = id;
             wifi_util_dbg_print(WIFI_MON,
                 "%s:%d  Retry (%d) to trigger scan for scan mode %d radio index %d\n", __func__,
@@ -918,7 +920,7 @@ int execute_radio_channel_api(wifi_mon_collector_element_t *c_elem, wifi_monitor
                 radioOperation->band == WIFI_FREQUENCY_5_BAND) {
                 if (is_5g_20M_channel_in_dfs(radioOperation->channel) ||
                     radioOperation->channelWidth == WIFI_CHANNELBANDWIDTH_160MHZ) {
-                    dwell_time = 15;
+                    dwell_time = 20;
                 }
             }
         }
