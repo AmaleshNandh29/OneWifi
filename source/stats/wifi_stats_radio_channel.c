@@ -566,10 +566,10 @@ int retrigger_neighbor_scan(void *arg)
         return RETURN_OK;
     }
 
-    wifi_util_info_print(WIFI_MON, "%s:%d  radio_index:%d channel:%d band:%d \n", __func__, __line__, args->radio_index, mon_data->radio_data[args->radio_index].primary_radio_channel,
+    wifi_util_info_print(WIFI_MON, "%s:%d  radio_index:%d channel:%d band:%d \n", __func__, __LINE__, args->radio_index, mon_data->radio_data[args->radio_index].primary_radio_channel,
             mon_data->radio_data[args->radio_index].channel_bandwidth);
     if ( args->scan_mode == WIFI_RADIO_SCAN_MODE_ONCHAN && (is_5g_20M_channel_in_dfs(mon_data->radio_data[args->radio_index].primary_radio_channel) ||
-          strstr("_160MHz", monitor->radio_data[args->radio_index].channel_bandwidth)) ?
+          strstr("_160MHz", mon_data->radio_data[args->radio_index].channel_bandwidth)) ?
           (mon_data->scan_trigger_retries[args->radio_index] < NEIGHBOR_DFS_SCAN_MAX_RETRY) :
           (mon_data->scan_trigger_retries[args->radio_index] < NEIGHBOR_SCAN_MAX_RETRY) ) {
         ret = execute_radio_channel_api(c_elem, mon_data, c_elem->collector_task_interval_ms);
