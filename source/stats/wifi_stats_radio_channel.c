@@ -34,7 +34,7 @@
 #define RADIO_SCAN_MAX_RESULTS_RETRIES_ON_AND_OFF_SCAN 35 //7 seconds
 #define NEIGHBOR_SCAN_RETRY_INTERVAL 45 //45ms
 #define NEIGHBOR_SCAN_MAX_RETRY 10
-#define NEIGHBOR_DFS_SCAN_MAX_RETRY 1
+#define NEIGHBOR_DFS_SCAN_MAX_RETRY 3
 
 int validate_radio_channel_args(wifi_mon_stats_args_t *args)
 {
