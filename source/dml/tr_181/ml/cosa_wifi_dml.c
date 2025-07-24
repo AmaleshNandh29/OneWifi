@@ -92,7 +92,8 @@
 
 extern ULONG g_currentBsUpdate;
 #endif
-
+# define INTEROP_MIN_STA 0
+# define INTEROP_MAX_STA 32
 extern bool is_radio_config_changed;
 static int radio_reset_count;
 ULONG last_vap_change;
@@ -358,6 +359,12 @@ WiFi_GetParamBoolValue
         return TRUE;
     }
 
+    if (AnscEqualString(ParamName, "CsiAnalytics", TRUE))
+    {
+        *pBool = rfc_pcfg->csi_analytics_enabled_rfc;
+        return TRUE;
+    }
+
     if (AnscEqualString(ParamName, "DFS", TRUE))
     {
         *pBool = rfc_pcfg->dfs_rfc;
@@ -384,6 +391,11 @@ WiFi_GetParamBoolValue
     if (AnscEqualString(ParamName, "WiFi-OffChannelScan", TRUE))
     {
         *pBool = rfc_pcfg->wifi_offchannelscan_sm_rfc;
+        return TRUE;
+    }
+    if (AnscEqualString(ParamName, "X_RDKCENTRAL-COM_MemwrapTool_RFC", TRUE))
+    {
+        *pBool = rfc_pcfg->memwraptool_app_rfc;
         return TRUE;
     }
     if (AnscEqualString(ParamName, "WiFi-Interworking", TRUE))
@@ -1129,6 +1141,12 @@ WiFi_SetParamBoolValue
         }
         return TRUE;
     }
+    if (AnscEqualString(ParamName, "X_RDKCENTRAL-COM_MemwrapTool_RFC", TRUE)) {
+        if (bValue != rfc_pcfg->memwraptool_app_rfc) {
+            push_rfc_dml_cache_to_one_wifidb(bValue, wifi_event_type_memwraptool_app_rfc);
+        }
+        return TRUE;
+    }
     if (AnscEqualString(ParamName, "WiFi-Interworking", TRUE))
     {
         if(bValue != rfc_pcfg->wifiinterworking_rfc) {
@@ -1150,6 +1168,15 @@ WiFi_SetParamBoolValue
     {
         if(bValue != rfc_pcfg->levl_enabled_rfc) {
             push_rfc_dml_cache_to_one_wifidb(bValue, wifi_event_type_levl_rfc);
+        }
+
+        return TRUE;
+    }
+
+    if (AnscEqualString(ParamName, "CsiAnalytics", TRUE))
+    {
+        if(bValue != rfc_pcfg->csi_analytics_enabled_rfc) {
+            push_rfc_dml_cache_to_one_wifidb(bValue, wifi_event_type_csi_analytics_rfc);
         }
 
         return TRUE;
@@ -6563,6 +6590,11 @@ AccessPoint_GetParamBoolValue
         return TRUE;
     }
 
+    if (AnscEqualString(ParamName, "InteropTelemetryCtrl", TRUE)) {
+        *pBool = pcfg->u.bss_info.interop_ctrl;
+        return TRUE;
+    }
+
     /* CcspTraceWarning(("Unsupported parameter '%s'\n", ParamName)); */
     return FALSE;
 }
@@ -6642,16 +6674,6 @@ AccessPoint_GetParamIntValue
         *pInt = pcfg->u.bss_info.bssMaxSta;
         return TRUE;
     }
-    if( AnscEqualString(ParamName, "MLD_ID", TRUE))
-    {
-        *pInt = pcfg->u.bss_info.mld_info.common_info.mld_id;
-        return TRUE;
-    }
-    if( AnscEqualString(ParamName, "MLD_Link_ID", TRUE))
-    {
-        *pInt = pcfg->u.bss_info.mld_info.common_info.mld_link_id;
-        return TRUE;
-    }
     if( AnscEqualString(ParamName, "X_CISCO_COM_BssUserStatus", TRUE))
     {
         if (isVapSTAMesh(pcfg->vap_index)) {
@@ -6683,6 +6705,12 @@ AccessPoint_GetParamIntValue
         return TRUE;
     }
 
+    if( AnscEqualString(ParamName, "InteropNumSta", TRUE))
+    {
+        *pInt = pcfg->u.bss_info.inum_sta;
+        wifi_util_dbg_print(WIFI_DMCLI,"%s:%d inumsta:%d \n", __FUNCTION__,__LINE__,pcfg->u.bss_info.inum_sta);
+        return TRUE;
+    }
 
     /* CcspTraceWarning(("Unsupported parameter '%s'\n", ParamName)); */
     return FALSE;
@@ -6772,6 +6800,18 @@ AccessPoint_GetParamUlongValue
     if( AnscEqualString(ParamName, "RetryLimit", TRUE))
     {
         *puLong = cfg->retry_limit;
+        return TRUE;
+    }
+
+    if( AnscEqualString(ParamName, "MLD_ID", TRUE))
+    {
+        *puLong = pcfg->u.bss_info.mld_info.common_info.mld_id;
+        return TRUE;
+    }
+
+    if( AnscEqualString(ParamName, "MLD_Link_ID", TRUE))
+    {
+        *puLong = pcfg->u.bss_info.mld_info.common_info.mld_link_id;
         return TRUE;
     }
 
@@ -7263,6 +7303,15 @@ AccessPoint_SetParamBoolValue
         return TRUE;
     }
 
+    if (AnscEqualString(ParamName, "InteropTelemetryCtrl", TRUE))
+    {
+        vapInfo->u.bss_info.interop_ctrl = bValue;
+        set_dml_cache_vap_config_changed(instance_number - 1);
+
+        wifi_util_dbg_print(WIFI_DMCLI, "%s:%d: interop_ctrl value = %d\n", __func__,
+            __LINE__, vapInfo->u.bss_info.interop_ctrl);
+        return TRUE;
+    }
     /* CcspTraceWarning(("Unsupported parameter '%s'\n", ParamName)); */
     return FALSE;
 }
@@ -7397,29 +7446,23 @@ AccessPoint_SetParamIntValue
         return TRUE;
     }
 
-    if( AnscEqualString(ParamName, "MLD_ID", TRUE))
+    if( AnscEqualString(ParamName, "InteropNumSta", TRUE))
     {
-        if ( vapInfo->u.bss_info.mld_info.common_info.mld_id == (unsigned int)iValue )
+        if (vapInfo->u.bss_info.inum_sta == (UINT)iValue)
         {
             return  TRUE;
         }
-        /* save update to backup */
-        vapInfo->u.bss_info.mld_info.common_info.mld_id = iValue;
+
+        if (iValue < INTEROP_MIN_STA || iValue > INTEROP_MAX_STA) {
+            wifi_util_error_print(WIFI_DMCLI,"%s:%d Invalid value for vap index:%d\n",__func__, __LINE__,pcfg->vap_index);
+            return FALSE;
+        }
+        /* Allow users to set max station for given VAP */
+        vapInfo->u.bss_info.inum_sta = iValue;
         set_dml_cache_vap_config_changed(instance_number - 1);
-        return TRUE;
+        return (TRUE);
     }
 
-    if( AnscEqualString(ParamName, "MLD_Link_ID", TRUE))
-    {
-        if ( vapInfo->u.bss_info.mld_info.common_info.mld_link_id == (unsigned int)iValue )
-        {
-            return  TRUE;
-        }
-        /* save update to backup */
-        vapInfo->u.bss_info.mld_info.common_info.mld_link_id = iValue;
-        set_dml_cache_vap_config_changed(instance_number - 1);
-        return TRUE;
-    }
     /* CcspTraceWarning(("Unsupported parameter '%s'\n", ParamName)); */
     return FALSE;
 }
@@ -7521,6 +7564,31 @@ AccessPoint_SetParamUlongValue
         cfg->associated_devices_highwatermark_threshold = uValue;
         return TRUE;
     }
+
+    if( AnscEqualString(ParamName, "MLD_ID", TRUE))
+    {
+        if ( vapInfo->u.bss_info.mld_info.common_info.mld_id == (unsigned int)uValue )
+        {
+            return  TRUE;
+        }
+        /* save update to backup */
+        vapInfo->u.bss_info.mld_info.common_info.mld_id = uValue;
+        set_dml_cache_vap_config_changed(instance_number - 1);
+        return TRUE;
+    }
+
+    if( AnscEqualString(ParamName, "MLD_Link_ID", TRUE))
+    {
+        if ( vapInfo->u.bss_info.mld_info.common_info.mld_link_id == (unsigned int)uValue )
+        {
+            return  TRUE;
+        }
+        /* save update to backup */
+        vapInfo->u.bss_info.mld_info.common_info.mld_link_id = uValue;
+        set_dml_cache_vap_config_changed(instance_number - 1);
+        return TRUE;
+    }
+
     /* CcspTraceWarning(("Unsupported parameter '%s'\n", ParamName)); */
     return FALSE;
 }
@@ -7814,7 +7882,6 @@ Security_GetParamBoolValue
     uint8_t instance_number = convert_vap_name_to_index(&((webconfig_dml_t *)get_webconfig_dml())->hal_cap.wifi_prop, pcfg->vap_name)+1;
     wifi_vap_info_t *vapInfo = (wifi_vap_info_t *) get_dml_cache_vap_info(instance_number-1);
     wifi_radio_operationParam_t *radioOperation = (wifi_radio_operationParam_t *) get_dml_cache_radio_map(pcfg->radio_index);
-    BOOL WPA3_RFC = FALSE;
 
     if ((vapInfo == NULL) || (radioOperation ==NULL))
     {
@@ -7838,13 +7905,7 @@ Security_GetParamBoolValue
     }
     if (AnscEqualString(ParamName, "X_RDKCENTRAL-COM_TransitionDisable", TRUE))
     {
-        CosaWiFiDmlGetWPA3TransitionRFC(&WPA3_RFC);
-
-        if ((radioOperation->band != WIFI_FREQUENCY_6_BAND) && (WPA3_RFC)) {
-            *pBool = l_security_cfg->wpa3_transition_disable;
-        } else {
-            *pBool = FALSE;
-        }
+        *pBool = l_security_cfg->wpa3_transition_disable;
     }
 
     if( AnscEqualString(ParamName, "Reset", TRUE)) {
@@ -7993,6 +8054,13 @@ Security_GetParamUlongValue
         *puLong = pcfg->u.radius.port;
         return TRUE;
     }
+
+    if( AnscEqualString(ParamName, "RepurposedRadiusServerPort", TRUE))
+    {
+        /* collect value */
+        *puLong = pcfg->repurposed_radius.port;
+        return TRUE;
+    }
 	
 	if( AnscEqualString(ParamName, "SecondaryRadiusServerPort", TRUE))
     {
@@ -8001,6 +8069,12 @@ Security_GetParamUlongValue
         return TRUE;
     }
 
+    if( AnscEqualString(ParamName, "RepurposedSecondaryRadiusServerPort", TRUE))
+    {
+        /* collect value */
+        *puLong = pcfg->repurposed_radius.s_port;
+        return TRUE;
+    }
 
     if( AnscEqualString(ParamName, "RadiusDASPort", TRUE))
     {
@@ -8261,7 +8335,21 @@ Security_GetParamStringValue
         return 0;
     }
 
+    if( AnscEqualString(ParamName, "RepurposedRadiusSecret", TRUE))
+    {
+        /* Radius Secret should always return empty string when read */
+        AnscCopyString(pValue, "");
+        return 0;
+    }    
+
     if( AnscEqualString(ParamName, "SecondaryRadiusSecret", TRUE))
+    {
+        /* Radius Secret should always return empty string when read */
+        AnscCopyString(pValue, "");
+        return 0;
+    }
+
+    if( AnscEqualString(ParamName, "RepurposedSecondaryRadiusSecret", TRUE))
     {
         /* Radius Secret should always return empty string when read */
         AnscCopyString(pValue, "");
@@ -8275,6 +8363,21 @@ Security_GetParamStringValue
         if(result)
         {
             AnscCopyString(pValue, (char *)&pcfg->u.radius.ip);
+        }
+        else
+        {
+            AnscCopyString(pValue,"0.0.0.0");
+        }
+        return 0;
+    }
+
+    if( AnscEqualString(ParamName, "RepurposedRadiusServerIPAddr", TRUE))
+    {
+        int result;
+        result=strcmp((char *)&pcfg->repurposed_radius.ip,"");
+        if(result)
+        {
+            AnscCopyString(pValue, (char *)&pcfg->repurposed_radius.ip);
         }
         else
         {
@@ -8297,6 +8400,22 @@ Security_GetParamStringValue
         }
         return 0;
     }
+
+    if( AnscEqualString(ParamName, "RepurposedSecondaryRadiusServerIPAddr", TRUE))
+    {
+        int result;
+        result=strcmp((char *)&pcfg->repurposed_radius.s_ip,"");
+        if(result)
+        {
+            AnscCopyString(pValue, (char *)&pcfg->repurposed_radius.s_ip);
+        }
+        else
+        {
+            AnscCopyString(pValue,"0.0.0.0");
+        }
+        return 0;
+    }
+
     if( AnscEqualString(ParamName, "MFPConfig", TRUE))
     {
 	convert_security_mode_integer_to_string(pcfg->mfp,pValue);
@@ -8370,7 +8489,6 @@ Security_SetParamBoolValue
     uint8_t instance_number = convert_vap_name_to_index(&((webconfig_dml_t *)get_webconfig_dml())->hal_cap.wifi_prop, pcfg->vap_name)+1;
     wifi_vap_info_t *vapInfo = (wifi_vap_info_t *) get_dml_cache_vap_info(instance_number-1);
     wifi_radio_operationParam_t *radioOperation = (wifi_radio_operationParam_t *) get_dml_cache_radio_map(pcfg->radio_index);
-    BOOL WPA3_RFC = FALSE;
 
     if ((vapInfo == NULL) || (radioOperation ==NULL))
     {
@@ -8395,27 +8513,12 @@ Security_SetParamBoolValue
     /* check the parameter name and set the corresponding value */
     if (AnscEqualString(ParamName, "X_RDKCENTRAL-COM_TransitionDisable", TRUE))
     {
-        if (radioOperation->band == WIFI_FREQUENCY_6_BAND)
-        {
-            CcspWifiTrace(("RDK_LOG_ERROR, %s Transition Mode not supported for 6GHz radio\n", __FUNCTION__));
-            return FALSE;
+        if (l_security_cfg->wpa3_transition_disable != bValue) {
+            l_security_cfg->wpa3_transition_disable = bValue;
+            wifi_util_dbg_print(WIFI_DMCLI,"%s:%d:wpa3_transition_disable=%d Value=%d\n",
+                __func__, __LINE__, l_security_cfg->wpa3_transition_disable, bValue);
+            set_dml_cache_vap_config_changed(instance_number - 1);
         }
-        /* GET the WPA3 Transition RFC value */
-        CosaWiFiDmlGetWPA3TransitionRFC(&WPA3_RFC);
-        if ( (bValue == TRUE) && (!WPA3_RFC) )
-        {
-            CcspTraceError(("%s: WPA3 Transition RFC is not enabled\n",__func__));
-            return FALSE;
-        }
-        if ( (l_security_cfg->mode != wifi_security_mode_wpa3_transition) &&
-                (WPA3_RFC) )
-        {
-            CcspTraceError(("%s: Security mode is not WPA3-Personal-Transition\n",__func__));
-            return FALSE;
-        }
-        l_security_cfg->wpa3_transition_disable = bValue;
-	wifi_util_dbg_print(WIFI_DMCLI,"%s:%d:wpa3_transition_disable=%d Value = %d  \n",__func__, __LINE__,l_security_cfg->wpa3_transition_disable,bValue);
-	set_dml_cache_vap_config_changed(instance_number - 1);
         return TRUE;
     }
 
@@ -9038,7 +9141,7 @@ Security_SetParamStringValue
 	set_dml_cache_vap_config_changed(instance_number - 1);
         return TRUE;
     }
-	
+
     rc = strcmp_s("SecondaryRadiusServerIPAddr", strlen("SecondaryRadiusServerIPAddr"), ParamName, &ind);
     ERR_CHK(rc);
     if((rc == EOK) && (!ind))
