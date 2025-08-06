@@ -504,8 +504,11 @@ webconfig_error_t translate_vap_info_to_em_common(const wifi_vap_info_t *vap, co
         return webconfig_error_translate_to_easymesh;
     }
 
+    vap_row->vap_mode = em_vap_mode_ap;
+
     vap_row->enabled = vap->u.bss_info.enabled;
     strncpy(vap_row->ssid, vap->u.bss_info.ssid, sizeof(vap_row->ssid));
+    vap_row->vap_index = vap->vap_index;
 
     // Set the em_bss_info_t vendor_elements to the same as wifi_vap_info_t vendor_elements
     memset(vap_row->vendor_elements, 0, sizeof(vap_row->vendor_elements));
@@ -517,7 +520,7 @@ webconfig_error_t translate_vap_info_to_em_common(const wifi_vap_info_t *vap, co
             vap->u.bss_info.bssid[2], vap->u.bss_info.bssid[3],
             vap->u.bss_info.bssid[4], vap->u.bss_info.bssid[5]);
     str_to_mac_bytes(mac_str,vap_row->bssid.mac);
-    strncpy(vap_row->bssid.name, iface_map->interface_name,sizeof(vap_row->bssid.name));
+    strncpy(vap_row->bssid.name, vap->vap_name, sizeof(vap_row->bssid.name));
 	convert_vap_name_to_hault_type(&vap_row->id.haul_type, (char *)vap->vap_name);
 
     default_em_bss_info(vap_row);
@@ -927,12 +930,16 @@ webconfig_error_t translate_sta_info_to_em_common(const wifi_vap_info_t *vap, co
     }
     default_em_bss_info(vap_row);
 
+    vap_row->vap_mode = em_vap_mode_sta;
+
     vap_row->enabled = vap->u.sta_info.enabled;
+    vap_row->vap_index = vap->vap_index;
+    wifi_util_info_print(WIFI_WEBCONFIG, "%s:%d: vap_index %d vap_name %s\n", __func__, __LINE__, vap->vap_index, vap->vap_name);
 
     // Copy basic info
     strncpy(vap_row->ssid, vap->u.sta_info.ssid, sizeof(vap->u.sta_info.ssid));
     memcpy(vap_row->bssid.mac, vap->u.sta_info.bssid, sizeof(mac_address_t));
-    strncpy(vap_row->bssid.name,iface_map->interface_name,sizeof(vap_row->bssid.name));
+    strncpy(vap_row->bssid.name, vap->vap_name, sizeof(vap_row->bssid.name));
     convert_vap_name_to_hault_type(&vap_row->id.haul_type, (char *)vap->vap_name);
 
     // Copy security info (mode/AKMs)
@@ -970,6 +977,12 @@ webconfig_error_t translate_sta_info_to_em_common(const wifi_vap_info_t *vap, co
     // Copy radio information
     strncpy(vap_row->ruid.name, radio_iface_map->radio_name,sizeof(vap_row->ruid.name));
     mac_address_from_name(radio_iface_map->interface_name, vap_row->ruid.mac);
+
+    if (vap->u.sta_info.conn_status == wifi_connection_status_connected) {
+        vap_row->connect_status = true;
+    } else {
+        vap_row->connect_status = false;
+    }
 
     return webconfig_error_none;
 }
