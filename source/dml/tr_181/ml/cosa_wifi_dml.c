@@ -8116,6 +8116,9 @@ void get_security_modes_supported(int vap_index, int *mode)
     if (band == WIFI_FREQUENCY_6_BAND) {
         *mode = passpoint_enabled ? COSA_DML_WIFI_SECURITY_WPA3_Enterprise :
             COSA_DML_WIFI_SECURITY_WPA3_Personal | COSA_DML_WIFI_SECURITY_WPA3_Enterprise |
+#if defined(CONFIG_IEEE80211BE)
+            COSA_DML_WIFI_SECURITY_WPA3_Personal_Compatibility |
+#endif
             COSA_DML_WIFI_SECURITY_Enhanced_Open;
         return;
     }
