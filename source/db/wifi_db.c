@@ -315,28 +315,8 @@ static int init_vap_config_default(int vap_index, wifi_vap_info_t *config,
             wifi_util_error_print(WIFI_DB, "%s:%d: Incorrect password length %d for vap '%s'\n", __func__, __LINE__, strlen(cfg.u.sta_info.security.u.key.key), vap_name);
             strncpy(cfg.u.sta_info.security.u.key.key, INVALID_KEY, sizeof(cfg.u.sta_info.security.u.key.key));
         }
-
-        cfg.u.sta_info.scan_params.channel.band = band;
-
-        switch(band) {
-            case WIFI_FREQUENCY_2_4_BAND:
-                cfg.u.sta_info.scan_params.channel.channel = 1;
-                break;
-            case WIFI_FREQUENCY_5_BAND:
-            case WIFI_FREQUENCY_5L_BAND:
-                cfg.u.sta_info.scan_params.channel.channel = 44;
-                break;
-            case WIFI_FREQUENCY_5H_BAND:
-                cfg.u.sta_info.scan_params.channel.channel = 157;
-                break;
-            case WIFI_FREQUENCY_6_BAND:
-                cfg.u.sta_info.scan_params.channel.channel = 5;
-                break;
-            default:
-                wifi_util_error_print(WIFI_DB,"%s:%d invalid band %d\n", __func__, __LINE__, band);
-                break;
-        }
-
+	cfg.u.sta_info.scan_params.channel.band = band;
+        cfg.u.sta_info.scan_params.channel.channel = 0;
         cfg.u.sta_info.conn_status = wifi_connection_status_disabled;
         memset(&cfg.u.sta_info.bssid, 0, sizeof(cfg.u.sta_info.bssid));
     } else {
