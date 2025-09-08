@@ -42,8 +42,6 @@
 #define EXT_DISCONNECTION_DISCONNECT 1
 #define EXT_DISCONNECTION_DISCONNECT_AND_IGNORE_RADIO 2
 
-int scan_trigger_counter;
-int scan_trigger_threshold = 10;
 
 static void swap_bss(bss_candidate_t *a, bss_candidate_t *b)
 {
@@ -1613,6 +1611,7 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
     bool found_candidate = false, send_event = false;
     unsigned int i = 0, index, j = 0;
     char name[64];
+    mac_addr_str_t bssid_str, sta_bssid_str;
     char cmd[128] = {0};
     wifi_sta_conn_info_t sta_conn_info;
     wifi_radio_operationParam_t *radio_params = NULL;
@@ -1661,8 +1660,13 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
 
     for (i = 0; i < vap_map->num_vaps; i++) {
         if (vap_map->vap_array[i].vap_index == sta_data->stats.vap_index) {
+                wifi_util_info_print(WIFI_CTRL, "%s:%d vap_bssid:%s sta_data_bssid:%s \n", __func__, __LINE__,
+                    to_mac_str(vap_map->vap_array[i].u.sta_info.bssid, bssid_str), to_mac_str(sta_data->bss_info.bssid, sta_bssid_str));
+                wifi_util_info_print(WIFI_CTRL, "%s:%d vap_conn_status:%d sta_data_conn_status:%d \n", __func__, __LINE__,
+                    vap_map->vap_array[i].u.sta_info.conn_status, sta_data->stats.connect_status);
+
             if (vap_map->vap_array[i].u.sta_info.conn_status != sta_data->stats.connect_status) {
-                wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD]\n", __func__, __LINE__);
+                wifi_util_info_print(WIFI_CTRL, "%s:%d \n", __func__, __LINE__);
                 // send bus connect indication
                 send_event = true;
             }
@@ -1746,7 +1750,6 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
             (ext->conn_state == connection_state_connection_to_nb_in_progress)) {
                 wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD]\n", __func__, __LINE__);
             int radio_freq_band = 0;
-	    scan_trigger_counter = 0;
             // copy the bss info to lcb
             memset(&ext->last_connected_bss, 0, sizeof(bss_candidate_t));
             memcpy(&ext->last_connected_bss.external_ap, &sta_data->bss_info, sizeof(wifi_bss_info_t));
@@ -1764,11 +1767,8 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
 
             // change the state
             ext_set_conn_state(ext, connection_state_connected, __func__, __LINE__);
-	    wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD] scan-trigger-counter : %d\n", __func__, __LINE__, scan_trigger_counter);
-	    ret = publish_endpoint_status_to_wan(ctrl, sta_data->stats.connect_status);
-            if (ret == RETURN_ERR) {
-	        wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
-	    }
+	        //ret = publish_endpoint_status_to_wan(ctrl, sta_data->stats.connect_status);
+            //if (ret == RETURN_ERR)    wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
         
 	    wifi_hal_add_station_bridge(sta_data->interface_name,bridge_name);
 
@@ -1880,15 +1880,10 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
             ext->ext_disconnection_event_timeout_handler_id = 0;
         }
 
-	if (scan_trigger_counter >= scan_trigger_threshold) {
-	    wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD] scan_trigger_counter : %d scan_trigger_threshold : %d\n", __func__, __LINE__, scan_trigger_counter, scan_trigger_threshold);
-            scan_trigger_counter = 0;
 	    ret = publish_endpoint_status_to_wan(ctrl, sta_data->stats.connect_status);
-            if (ret == RETURN_ERR) {
-                wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
-            }
-	    //ret = set_endpoint_enable(sta_data->stats.connect_status);
-	}
+        if (ret == RETURN_ERR) {
+            wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
+        }
 
         //Workaround for sta disconnection
         wifi_util_dbg_print(WIFI_CTRL,"%s:%d Deleting link\n", __func__, __LINE__);	
@@ -1910,8 +1905,6 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
                 wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD]\n", __func__, __LINE__);
                 candidate = NULL;
                 found_candidate = false;
-		scan_trigger_counter++;
-                wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD] SCAN TRIGGER COUNTER [%d]\n", __func__, __LINE__, scan_trigger_counter);
                 ext_set_conn_state(ext, connection_state_disconnected_scan_list_none, __func__,
                     __LINE__);
             } else {
@@ -2011,8 +2004,6 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
                 candidate->conn_attempt = connection_attempt_failed;
                 ext_set_conn_state(ext, connection_state_disconnected_scan_list_none, __func__,
                     __LINE__);
-		scan_trigger_counter++;
-                wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD] SCAN TRIGGER COUNTER [%d]\n", __func__, __LINE__, scan_trigger_counter);
             }
             wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD]\n", __func__, __LINE__);
             schedule_connect_sm(svc);
@@ -2027,8 +2018,6 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
         wifi_util_info_print(WIFI_CTRL, "%s:%d candidate null connection state: %s\r\n",
             __func__, __LINE__, ext_conn_state_to_str(ext->conn_state));
         ext_set_conn_state(ext, connection_state_disconnected_scan_list_none, __func__, __LINE__);
-        scan_trigger_counter++;
-        wifi_util_info_print(WIFI_CTRL, "%s:%d[PRAMOD] SCAN TRIGGER COUNTER [%d]\n", __func__, __LINE__, scan_trigger_counter);
         schedule_connect_sm(svc);
     } else {
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d: candidate null connection state: %s\r\n", __func__,
