@@ -1728,19 +1728,6 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
             return RETURN_ERR;
         }
 
-    	sprintf(name, "Device.WiFi.EndPoint.1.Status");
-        uint32_t str_size = strlen("Up") + 1;
-        memset(&data, 0, sizeof(raw_data_t));
-        data.data_type = bus_data_type_string;
-        data.raw_data.bytes = malloc(str_size);
-        data.raw_data_len = str_size;
-        strncpy((char *)data.raw_data.bytes, "Up", str_size);
-
-        rc = get_bus_descriptor()->bus_event_publish_fn(&ctrl->handle, name, &data);
-        if (rc != bus_error_success) {
-            wifi_util_dbg_print(WIFI_CTRL, "%s:%d: bus_event_publish_fn(): Event failed\n", __func__, __LINE__);
-           // return RETURN_ERR;
-        }
         wifi_util_dbg_print(WIFI_CTRL, "%s:%d interface_name=%s\n", __func__, __LINE__,sta_data->interface_name);
    }
 
@@ -1767,8 +1754,8 @@ int process_ext_sta_conn_status(vap_svc_t *svc, void *arg)
 
             // change the state
             ext_set_conn_state(ext, connection_state_connected, __func__, __LINE__);
-	        //ret = publish_endpoint_status_to_wan(ctrl, sta_data->stats.connect_status);
-            //if (ret == RETURN_ERR)    wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
+	        ret = publish_endpoint_status_to_wan(ctrl, sta_data->stats.connect_status);
+            if (ret == RETURN_ERR)    wifi_util_dbg_print(WIFI_CTRL,"%s:%d Error in publishing the status\n", __func__, __LINE__);
         
 	    wifi_hal_add_station_bridge(sta_data->interface_name,bridge_name);
 
