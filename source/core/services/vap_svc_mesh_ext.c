@@ -1386,6 +1386,8 @@ int process_ext_scan_results(vap_svc_t *svc, void *arg)
 
     tmp_bss = bss;
 
+    wifi_util_error_print(WIFI_CTRL, "%s:%d conn_state:%d num:%d radio_index:%d ssid:%s freq:%d sec_mode:%d oper_freq_band:%d \n",
+        __func__, __LINE__, ext->conn_state, results->num, results->radio_index, bss->ssid, bss->freq, bss->sec_mode, bss->oper_freq_band);
     if (ext->conn_state == connection_state_connected_scan_list) {
         process_ext_connected_scan_results(svc, arg);
         return 0;

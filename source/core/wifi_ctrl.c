@@ -1075,6 +1075,8 @@ int scan_results_callback(int radio_index, wifi_bss_info_t **bss, unsigned int *
         res.num = *num;
         memcpy((unsigned char *)res.bss, (unsigned char *)(*bss), (*num)*sizeof(wifi_bss_info_t));
     }
+        wifi_util_error_print(WIFI_CTRL, "-- %s %d res_radio_index:%d num:%d \n", __func__, __LINE__, res.radio_index, res.num);
+
     if (is_sta_enabled()) {
         push_event_to_ctrl_queue(&res, sizeof(scan_results_t), wifi_event_type_hal_ind,
             wifi_event_scan_results, NULL);
